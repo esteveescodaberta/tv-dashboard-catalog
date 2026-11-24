@@ -1,9 +1,39 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
+
+const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
+const BASE_URL = "https://api.themoviedb.org/3";
+const IMAGE_URL = "https://image.tmdb.org/t/p/w500";
 
 function App() {
   
   const [selectedGenre, setSelectedGenre] = useState("All");
+  const [movies, setMovies] = useState([]);
+  const [heroMovie, setHeroMovie] = useState(null); 
+
+  useEffect(() => {
+  const fetchMovies = async () => {
+    try {
+    
+      const url = `${BASE_URL}/movie/popular?api_key=${API_KEY}&language=en-US`;
+      
+      
+      const response = await fetch(url);
+      
+      
+      const data = await response.json();
+
+      
+      console.log(data.results); 
+      setMovies(data.results);
+      setHeroMovie(data.results[0]); 
+    } catch (error) {
+      console.error("Error carregant pel·lícules:", error);
+    }
+  };
+
+  fetchMovies();
+}, []); 
 
   return (
     <div className="dashboard-container">
@@ -36,30 +66,38 @@ function App() {
         </section>
         
         {/* HERO SECTION */}
-        <section className="hero-section">
-          <div className="hero-overlay"></div>
-          <div className="hero-data">
-            <span className="rating">⭐ x</span>
-            <h1 className="hero-title">Lorem ipsum dolor sit amet</h1>
-            <p className="hero-description">
-            Lorem, ipsum dolor sit amet consectetur adipisicing elit. Odio temporibus officiis exercitationem voluptatum, id aperiam voluptates recusandae provident distinctio sed minima dolores doloremque, quae expedita reprehenderit, nisi corrupti eos similique. </p>
-            <div className="hero-buttons">
-              <button className="btn-play">▶ Play</button>
-              <button className="btn-info">More Info</button>
+        {heroMovie && (
+          <section className="hero-section">
+            <div className="hero-overlay"></div>
+            <div className="hero-data">
+              <span className="rating">⭐ {heroMovie.vote_average?.toFixed(1)}</span>
+              <h1 className="hero-title">{heroMovie.title}</h1>
+              <p className="hero-description">{heroMovie.overview}</p>
+              <div className="hero-buttons">
+                <button className="btn-play">▶ Play</button>
+                <button className="btn-info">More Info</button>
+              </div>
             </div>
-          </div>
-        </section>
+          </section>
+        )}
 
         {/* GALLERY SECTION */}
         <section className="gallery-section">
           <h2 className="section-title">Recommended for You</h2>
           <div className="gallery-grid">
-            {/* Movie cards will be dynamically rendered here */}
-            <div className="movie-card-skeleton">Poster 1</div>
-            <div className="movie-card-skeleton">Poster 2</div>
-            <div className="movie-card-skeleton">Poster 3</div>
-            <div className="movie-card-skeleton">Poster 4</div>
-            <div className="movie-card-skeleton">Poster 5</div>
+            {movies.map((movie) => (
+              <div 
+                key={movie.id} 
+                className="movie-card"
+                onClick={() => setHeroMovie(movie)}
+              >
+                <img 
+                  src={`${IMAGE_URL}${movie.poster_path}`} 
+                  alt={movie.title} 
+                  className="movie-img"
+                />
+              </div>
+            ))}
           </div>
         </section>
 
